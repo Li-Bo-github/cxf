@@ -306,7 +306,11 @@ public abstract class AbstractJMSTester {
             if (inMessage.get() == null) {
                 condition.await(MAX_RECEIVE_TIME, TimeUnit.SECONDS);
                 if (inMessage.get() == null) {
-                    assertNotNull("Can't receive the Conduit Message in " + MAX_RECEIVE_TIME + " seconds", inMessage.get());
+                    String errorMessage = String.format(
+                        "Can't receive the Conduit Message in %d seconds",
+                        MAX_RECEIVE_TIME
+                    );
+                    assertNotNull(errorMessage, inMessage.get());
                 }
             }
             return inMessage.getAndSet(null);
