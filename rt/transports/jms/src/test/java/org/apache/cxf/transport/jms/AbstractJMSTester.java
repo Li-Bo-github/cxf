@@ -26,9 +26,9 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -301,7 +301,7 @@ public abstract class AbstractJMSTester {
 
 
     protected Message waitForReceiveInMessage() throws InterruptedException {
-         if (null == inMessage.get()) {
+        if (null == inMessage.get()) {
             if (!latch.await(MAX_RECEIVE_TIME, TimeUnit.SECONDS)) {
                 assertNotNull("Can't receive the Conduit Message in " + MAX_RECEIVE_TIME + " seconds", inMessage.get());
             }
