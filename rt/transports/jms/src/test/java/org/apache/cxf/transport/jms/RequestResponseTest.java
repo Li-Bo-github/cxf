@@ -102,13 +102,12 @@ public class RequestResponseTest extends AbstractJMSTester {
             // create the thread to handler the Destination incoming message
 
             if (!synchronous) {
-                boolean received = messageReceivedLatch.await(30, TimeUnit.SECONDS);
+                boolean received = messageReceivedLatch.await(10, TimeUnit.SECONDS);
                 if (!received) {
                     throw new RuntimeException("Timeout waiting for message to be processed");
                 }
-            } else {
-                verifyReceivedMessage(waitForReceiveInMessage());
             }
+            verifyReceivedMessage(waitForReceiveInMessage());
         } finally {
             conduit.close();
             destination.shutdown();
