@@ -302,7 +302,8 @@ public abstract class AbstractJMSTester {
 
     protected Message waitForReceiveInMessage() throws InterruptedException {
         if (null == inMessage.get()) {
-            if (!latch.await(MAX_RECEIVE_TIME, TimeUnit.SECONDS)) {
+            boolean received = messageLatch.await(MAX_RECEIVE_TIME, TimeUnit.SECONDS);
+            if (!received) {
                 assertNotNull("Can't receive the Conduit Message in " + MAX_RECEIVE_TIME + " seconds", inMessage.get());
             }
         }
