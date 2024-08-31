@@ -20,6 +20,8 @@
 package org.apache.cxf.transport.jms;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.ExchangeImpl;
@@ -32,6 +34,7 @@ import org.apache.cxf.transport.MessageObserver;
 import org.junit.Test;
 
 public class RequestResponseTest extends AbstractJMSTester {
+    private final CountDownLatch messageReceivedLatch = new CountDownLatch(1);
 
     @Test
     public void testRequestQueueResponseTempQueue() throws Exception {
@@ -86,6 +89,8 @@ public class RequestResponseTest extends AbstractJMSTester {
                     sendOneWayMessage(backConduit, replyMessage);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
+                } finally {
+                    messageReceivedLatch.countDown();
                 }
             }
         };
@@ -96,7 +101,14 @@ public class RequestResponseTest extends AbstractJMSTester {
             // wait for the message to be got from the destination,
             // create the thread to handler the Destination incoming message
 
-            verifyReceivedMessage(waitForReceiveInMessage());
+            if (!synchronous) {
+                boolean received = messageReceivedLatch.await(30, TimeUnit.SECONDS);
+                if (!received) {
+                    throw new RuntimeException("Timeout waiting for message to be processed");
+                }
+            } else {
+                verifyReceivedMessage(waitForReceiveInMessage());
+            }
         } finally {
             conduit.close();
             destination.shutdown();
