@@ -78,7 +78,7 @@ public abstract class AbstractJMSTester {
 
     private final AtomicReference<Message> inMessage = new AtomicReference<>();
     private final AtomicReference<Message> destMessage = new AtomicReference<>();
-    private final CountDownLatch latch = new CountDownLatch(1);
+    private final CountDownLatch messageLatch = new CountDownLatch(1);
 
     @BeforeClass
     public static void startServices() throws Exception {
