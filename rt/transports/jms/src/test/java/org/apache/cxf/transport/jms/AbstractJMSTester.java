@@ -25,9 +25,8 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;
@@ -78,8 +77,9 @@ public abstract class AbstractJMSTester {
 
     private final AtomicReference<Message> inMessage = new AtomicReference<>();
     private final AtomicReference<Message> destMessage = new AtomicReference<>();
-    private final CountDownLatch messageLatch = new CountDownLatch(1);
-
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
+    
     @BeforeClass
     public static void startServices() throws Exception {
         final String brokerUri = "tcp://localhost:" + TestUtil.getNewPortNumber(AbstractJMSTester.class);
@@ -301,13 +301,18 @@ public abstract class AbstractJMSTester {
 
 
     protected Message waitForReceiveInMessage() throws InterruptedException {
-        if (null == inMessage.get()) {
-            boolean received = messageLatch.await(MAX_RECEIVE_TIME, TimeUnit.SECONDS);
-            if (!received) {
-                assertNotNull("Can't receive the Conduit Message in " + MAX_RECEIVE_TIME + " seconds", inMessage.get());
+        lock.lock();
+        try {
+            if (inMessage.get() == null) {
+                condition.await(MAX_RECEIVE_TIME, TimeUnit.SECONDS);
+                if (inMessage.get() == null) {
+                    assertNotNull("Can't receive the Conduit Message in " + MAX_RECEIVE_TIME + " seconds", inMessage.get());
+                }
             }
+            return inMessage.getAndSet(null);
+        } finally {
+            lock.unlock();
         }
-        return inMessage.getAndSet(null);
     }
 
 
